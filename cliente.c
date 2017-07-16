@@ -17,7 +17,7 @@
 #include <sys/resource.h>
 #include <fcntl.h>
 
-#define BUFLEN 10485760 //10 Mb
+#define BUFLEN 1024 //1 kb
 
 int main(int argc, char ** argv)
 {
@@ -71,15 +71,15 @@ int main(int argc, char ** argv)
   	return 1;
   }
   printf("conectado...\n");
-  
-  //send(cliente, ruta, strlen(ruta), 0);
-  
-  /*while(1)
-  {
-  	//char mensaje[BUFLEN];
-  	//scanf("%s",mensaje);
-  	//send(cliente, mensaje,strlen(mensaje),0);
-  }*/
 
+  while (1){
+    send(cliente, ruta, strlen(ruta), 0);
+  
+    void * buf = malloc(BUFLEN);
+    recv(cliente, buf, BUFLEN,0);
+
+    return 0;
+  }
+  
   return 0;
 }

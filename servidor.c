@@ -17,7 +17,7 @@
 #include <sys/resource.h>
 #include <fcntl.h>
 
-#define BUFLEN 10485760 //10 Mb
+#define BUFLEN 1024 //1 kb
 
 int main(int argc, char ** argv)
 {
@@ -84,15 +84,11 @@ int main(int argc, char ** argv)
 
   while(1)
   {
-  	int bytesRecibidos = recv(cliente, ruta, BUFLEN, 0);
-  	if(bytesRecibidos <= 0)
-  	{
-  		perror("Se desconecto!\n");
-  		return 1;
-  	}
+  	recv(cliente, ruta, BUFLEN, 0);
+    printf("Usuario conectado\n");
 
-  	printf("Buscanco archivo: %s\n", ruta);
-  	
+    printf("Buscanco archivo: %s\n", ruta);
+  
     int fd = open(ruta, O_RDONLY);
     if (fd < 0)
     {
@@ -101,20 +97,32 @@ int main(int argc, char ** argv)
       send(cliente, mensaje, strlen(mensaje) ,0);
       return -1;
     }
-    printf("Archivo abierto correctamente\n");
-
-    int filesize = read(fd, file, BUFLEN);
-    if (filesize <= 0)
+    else
     {
-      printf("Error con el archivo\n");
-      char * mensaje = "Error al abrir el archivo\n";
-      send(cliente, mensaje, strlen(mensaje) ,0);
-      return -1;
-    }
-    printf("Archivo leido correctamente\n");
+      printf("Archivo abierto correctamente\n");
 
-    send(cliente, file, filesize, 0);
-    printf("Archivo enviado correctamente\n");
+      int filesize = read(fd, file, BUFLEN);
+      if (filesize <= 0)
+      {
+        printf("Error en la lectura del archivo\n");
+        char * mensaje = "Error al abrir el archivo\n";
+        send(cliente, mensaje, strlen(mensaje) ,0);
+        return -1;
+      }
+      else
+      {
+        printf("Archivo leido correctamente\n");
+        if ((send(cliente, file, filesize, 0)) <= 0){
+          printf("Error con el archivo\n");
+          char * mensaje = "Error en el envio del archivo\n";
+          send(cliente, mensaje, strlen(mensaje) ,0);
+          return -1;
+        }
+        else
+          printf("Archivo enviado correctamente\n");
+      }
+      
+    }
   }
   return 0;
 }
