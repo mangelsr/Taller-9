@@ -15,10 +15,11 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/resource.h>
+#include <fcntl.h>
 
-#define BUFLEN 1000
+#define BUFLEN 10485760 //10 Mb
 
-int main (int argc, char ** argv)
+int main(int argc, char ** argv)
 {
   int servidor;
   
@@ -26,7 +27,7 @@ int main (int argc, char ** argv)
   {
   	printf("Error!!\n");
     printf("Modo de Uso: ./servidor <ip> <numero de puerto>\n");
-    exit(-1);
+    return -1;
   }
 
   char* ip = argv[1];
@@ -50,7 +51,7 @@ int main (int argc, char ** argv)
   if (servidor == -1)
   {
   	printf("Error al abrir el socket\n");
-  	return 0;
+  	return -1;
   }
   //Para que no haya problemas debido a que el socket siga abierto
   int abierto = 1;
@@ -60,8 +61,9 @@ int main (int argc, char ** argv)
   int enlace = bind(servidor, (struct sockaddr *)&direccion_servidor, sizeof(direccion_servidor));
   if(enlace != 0)
   {
-  	printf("Error!!!");
+  	printf("Error!!!\n");
   	printf("No se puede enlazar al puerto : dirección ya está en uso\n");
+    return -1;
   }
 
   //Ponemos al socket en espera
@@ -77,22 +79,42 @@ int main (int argc, char ** argv)
   memset(&direccion_servidor, 0, sizeof(direccion_cliente));
   unsigned int tam = sizeof(direccion_cliente);
   int cliente = accept(servidor,(struct sockaddr *)&direccion_cliente,&tam);
-  char *buffer = malloc(BUFLEN);
+  char *ruta = malloc(BUFLEN);
+  void *file = malloc(BUFLEN);
 
   while(1)
   {
-  	int bytesRecibidos = recv(cliente, buffer, 1000, 0);
+  	int bytesRecibidos = recv(cliente, ruta, BUFLEN, 0);
   	if(bytesRecibidos <= 0)
   	{
   		perror("Se desconecto!\n");
   		return 1;
   	}
 
-  	buffer[bytesRecibidos] = '\0';
-  	printf("Me llegaron %d bytes con %s\n", bytesRecibidos, buffer);
-  	char *buffer = malloc(BUFLEN);
+  	printf("Buscanco archivo: %s\n", ruta);
+  	
+    int fd = open(ruta, O_RDONLY);
+    if (fd < 0)
+    {
+      printf("Error al abrir el archivo\n");
+      char * mensaje = "Error al abrir el archivo\n";
+      send(cliente, mensaje, strlen(mensaje) ,0);
+      return -1;
+    }
+    printf("Archivo abierto correctamente\n");
 
-  	free(buffer);
+    int filesize = read(fd, file, BUFLEN);
+    if (filesize <= 0)
+    {
+      printf("Error con el archivo\n");
+      char * mensaje = "Error al abrir el archivo\n";
+      send(cliente, mensaje, strlen(mensaje) ,0);
+      return -1;
+    }
+    printf("Archivo leido correctamente\n");
+
+    send(cliente, file, filesize, 0);
+    printf("Archivo enviado correctamente\n");
   }
   return 0;
 }

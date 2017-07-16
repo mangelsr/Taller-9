@@ -15,8 +15,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/resource.h>
+#include <fcntl.h>
 
-#define BUFLEN 1000
+#define BUFLEN 10485760 //10 Mb
 
 int main(int argc, char ** argv)
 {
@@ -26,7 +27,7 @@ int main(int argc, char ** argv)
   {
   	printf("Error!!\n");
     printf("Modo de Uso: ./cliente <ip> <puerto> <ruta del archivo> <nombre del archivo>\n");
-    exit(-1);
+    return -1;
   }
 
   char *ip = argv[1];
@@ -58,7 +59,7 @@ int main(int argc, char ** argv)
   if (cliente == -1)
   {
   	printf("Error al abrir el socket\n");
-  	return 0;
+  	return -1;
   }
   printf("Abierto el socket para el cliente...\n");
 
@@ -71,12 +72,14 @@ int main(int argc, char ** argv)
   }
   printf("conectado...\n");
   
-  while(1)
+  //send(cliente, ruta, strlen(ruta), 0);
+  
+  /*while(1)
   {
-  	char mensaje[BUFLEN];
-  	scanf("%s",mensaje);
-  	send(cliente, mensaje,strlen(mensaje),0);
-  }
+  	//char mensaje[BUFLEN];
+  	//scanf("%s",mensaje);
+  	//send(cliente, mensaje,strlen(mensaje),0);
+  }*/
 
   return 0;
 }
