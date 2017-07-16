@@ -17,7 +17,7 @@
 #include <sys/resource.h>
 #include <fcntl.h>
 
-#define BUFLEN 1024 //1 kb
+#define BUFLEN 10485760 // 10 Mb
 
 int main(int argc, char ** argv)
 {
@@ -78,12 +78,14 @@ int main(int argc, char ** argv)
   struct sockaddr_in direccion_cliente;
   memset(&direccion_servidor, 0, sizeof(direccion_cliente));
   unsigned int tam = sizeof(direccion_cliente);
-  int cliente = accept(servidor,(struct sockaddr *)&direccion_cliente,&tam);
-  char *ruta = malloc(BUFLEN);
-  void *file = malloc(BUFLEN);
+  
 
   while(1)
   {
+    int cliente = accept(servidor,(struct sockaddr *)&direccion_cliente,&tam);
+    char *ruta = malloc(BUFLEN);
+    void *file = malloc(BUFLEN);
+
   	recv(cliente, ruta, BUFLEN, 0);
     printf("Usuario conectado\n");
 
@@ -112,7 +114,7 @@ int main(int argc, char ** argv)
       else
       {
         printf("Archivo leido correctamente\n");
-        if ((send(cliente, file, filesize, 0)) <= 0){
+        if ((write(cliente, file, filesize)) <= 0){
           printf("Error con el archivo\n");
           char * mensaje = "Error en el envio del archivo\n";
           send(cliente, mensaje, strlen(mensaje) ,0);
@@ -121,8 +123,8 @@ int main(int argc, char ** argv)
         else
           printf("Archivo enviado correctamente\n");
       }
-      
     }
+    close(cliente);
   }
   return 0;
 }

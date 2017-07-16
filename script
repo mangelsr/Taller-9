@@ -1,6 +1,0 @@
-#!/bin/bash
-max=10000
-for (( i=1; i <= $max; i++ ))
-do
-    ./cliente 127.0.0.1 4545
-done

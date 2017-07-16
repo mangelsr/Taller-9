@@ -6,6 +6,7 @@
         "in.h": "c",
         "socket.h": "c",
         "resource.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "stdio2.h": "c"
     }
 }
