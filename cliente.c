@@ -17,7 +17,7 @@
 #include <sys/resource.h>
 #include <fcntl.h>
 
-#define BUFLEN 10485760 // 10 Mb
+#define BUFLEN 100 // 10 Mb
 
 int main(int argc, char ** argv)
 {
@@ -69,31 +69,28 @@ int main(int argc, char ** argv)
   printf("conectado...\n");
   
   //Enviamos la ruta del archivo para que el servidor lo busque
-  send(cliente, ruta, strlen(ruta), 0);
+  int tam = strlen(ruta);
+  send(cliente, &tam, sizeof(int), 0);
+  send(cliente, ruta, tam, 0);
   
   //Leemos la respuesta del servidor
-  void * buf = malloc(BUFLEN);
-  recv(cliente, buf, BUFLEN,0);
-  
-  int fd = creat(nombre,S_IRWXU);
-  
-  if (fd < 0)
+  void * buf = malloc(1);
+
+  int fd = open(nombre,O_CREAT|O_TRUNC|O_RDWR,S_IRWXU);
+  if(fd == -1)
   {
-    printf("Error al recivir el archivo\n");
-    return -1;
+  	printf("Error al crear el archivo..\n");
+  	return -1;
   }
-  else
+
+  int n=1;
+  while(n>0)
   {
-    printf("Respuesta del servidor recivida\n");
-    if ((write(fd,buf,sizeof(buf))) < 0)
-    {
-      printf("Error guardando la informacion\n");
-      return -1;
-    }
-    else
-    {
-      printf("Archivo descargado correctamente\n");
-      return 0;
-    }
+    recv(cliente, &n, sizeof(int), 0);
+    recv(cliente, buf, n,0);
+    write(fd,buf,n);
+    memset(buf, 0, 1);
   }
+  close(fd);
+  return 0;
 }
