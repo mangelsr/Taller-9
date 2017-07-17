@@ -79,28 +79,11 @@ int main(int argc, char ** argv)
   memset(&direccion_servidor, 0, sizeof(direccion_cliente));
   unsigned int tam = sizeof(direccion_cliente);
   
-/*
-  int cliente = accept(servidor,(struct sockaddr *)&direccion_cliente,&tam);
-  char *ruta = (char *)malloc(BUFLEN*sizeof(char *));
-  void *file = (void *)malloc(BUFLEN*sizeof(void *));
-  recv(cliente, ruta, BUFLEN, 0);
-  printf("\nUsuario conectado\n");
-  printf("Buscanco archivo: %s\n", ruta);
-
-  int fd = open(ruta, O_RDONLY);
-  if (fd < 0)
-  {
-    printf("Error al abrir el archivo\n");
-    char * mensaje = "Error al abrir el archivo\n";
-    send(cliente, mensaje, strlen(mensaje) ,0);
-    return -1;
-  }
-*/
   while(1)
   {
     int cliente = accept(servidor,(struct sockaddr *)&direccion_cliente,&tam);
     char *ruta = (char *)malloc(BUFLEN*sizeof(char *));
-    char *file = (void *)malloc(BUFLEN*sizeof(char *));
+    char *file = (void *)malloc(sizeof(char *));
     int n=0;
     recv(cliente, &n, sizeof(int), 0);
   	recv(cliente, ruta, n, 0);
@@ -116,24 +99,24 @@ int main(int argc, char ** argv)
       send(cliente, mensaje, strlen(mensaje) ,0);
       return -1;
     }
-      printf("Archivo abierto correctamente\n");
-      int filesize;
       
-      while((filesize = read(fd, file, BUFLEN)) > 0)
-      {
-          send(cliente, &filesize, sizeof(int), 0);
-          int sendedsize = send(cliente, file, filesize, 0);
-          if (sendedsize <= 0) 
-          {
-              printf("Error en el envio del archivo\n");
-              char * mensaje = "Error en el envio del archivo\n";
-              send(cliente, mensaje, strlen(mensaje) ,0);
-              return -1;
-          }
-      }
-      free(file);
-      printf("Archivo enviado correctamente\n");
+    printf("Archivo abierto correctamente\n");
+    int filesize;
+      
+    while((filesize = read(fd, file, 1)) > 0)
+    {
+      send(cliente, &filesize, sizeof(int), 0);
+      send(cliente, file, filesize, 0);
+      memset(file, 0, 1);
+    }
+      
+    printf("Archivo enviado correctamente\n");
+    filesize=0;
+    send(cliente, &filesize, sizeof(int), 0);
+    close(fd);
+    free(file);
     close(cliente);
   }
+
   return 0;
 }

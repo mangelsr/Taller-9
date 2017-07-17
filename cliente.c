@@ -74,7 +74,7 @@ int main(int argc, char ** argv)
   send(cliente, ruta, tam, 0);
   
   //Leemos la respuesta del servidor
-  void * buf = malloc(1);
+  char * buf = malloc(1);
 
   int fd = open(nombre,O_CREAT|O_TRUNC|O_RDWR,S_IRWXU);
   if(fd == -1)
@@ -84,13 +84,13 @@ int main(int argc, char ** argv)
   }
 
   int n=1;
-  while(n>0)
+  do
   {
     recv(cliente, &n, sizeof(int), 0);
     recv(cliente, buf, n,0);
     write(fd,buf,n);
     memset(buf, 0, 1);
-  }
+  }while(n>0);
   close(fd);
   return 0;
 }
