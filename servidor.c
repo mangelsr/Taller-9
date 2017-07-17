@@ -83,11 +83,11 @@ int main(int argc, char ** argv)
   while(1)
   {
     int cliente = accept(servidor,(struct sockaddr *)&direccion_cliente,&tam);
-    char *ruta = malloc(BUFLEN);
-    void *file = malloc(BUFLEN);
+    char *ruta = (char *)malloc(BUFLEN*sizeof(char *));
+    void *file = (void *)malloc(BUFLEN*sizeof(void *));
 
   	recv(cliente, ruta, BUFLEN, 0);
-    printf("Usuario conectado\n");
+    printf("\nUsuario conectado\n");
 
     printf("Buscanco archivo: %s\n", ruta);
   
@@ -102,7 +102,6 @@ int main(int argc, char ** argv)
     else
     {
       printf("Archivo abierto correctamente\n");
-
       int filesize = read(fd, file, BUFLEN);
       if (filesize <= 0)
       {
@@ -114,14 +113,14 @@ int main(int argc, char ** argv)
       else
       {
         printf("Archivo leido correctamente\n");
-        if ((write(cliente, file, filesize)) <= 0){
-          printf("Error con el archivo\n");
-          char * mensaje = "Error en el envio del archivo\n";
-          send(cliente, mensaje, strlen(mensaje) ,0);
-          return -1;
-        }
-        else
-          printf("Archivo enviado correctamente\n");
+          int sendedsize = send(cliente, file, filesize, 0);
+          if (sendedsize <= 0) {
+              printf("Error en el envio del archivo\n");
+              char * mensaje = "Error en el envio del archivo\n";
+              send(cliente, mensaje, strlen(mensaje) ,0);
+              return -1;
+          }
+        printf("Archivo enviado correctamente\n");
       }
     }
     close(cliente);

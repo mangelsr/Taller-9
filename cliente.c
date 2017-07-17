@@ -70,7 +70,6 @@ int main(int argc, char ** argv)
   
   //Enviamos la ruta del archivo para que el servidor lo busque
   send(cliente, ruta, strlen(ruta), 0);
-  printf("Ruta enviada al servidor\n");
   
   //Leemos la respuesta del servidor
   void * buf = malloc(BUFLEN);
