@@ -69,9 +69,7 @@ int main(int argc, char ** argv)
   printf("conectado...\n");
   
   //Enviamos la ruta del archivo para que el servidor lo busque
-  int tam = strlen(ruta);
-  send(cliente, &tam, sizeof(int), 0);
-  send(cliente, ruta, tam, 0);
+  send(cliente, ruta, strlen(ruta), 0);
   
   //Leemos la respuesta del servidor
   char * buf = malloc(1);
@@ -84,13 +82,17 @@ int main(int argc, char ** argv)
   }
 
   int n=1;
-  do
+  while(n>0)
   {
-    recv(cliente, &n, sizeof(int), 0);
-    recv(cliente, buf, n,0);
+    n = recv(cliente, buf, n, 0);
+    if (n == 1){
+      printf("Error con con el archivo\n");
+      break;
+    }
+      
     write(fd,buf,n);
     memset(buf, 0, 1);
-  }while(n>0);
+  }
   close(fd);
   return 0;
 }

@@ -17,7 +17,8 @@
 #include <sys/resource.h>
 #include <fcntl.h>
 
-#define BUFLEN 100// 10 Mb
+#define BUFLEN 100
+#define BUFRD 100
 
 int main(int argc, char ** argv)
 {
@@ -68,7 +69,7 @@ int main(int argc, char ** argv)
 
   //Ponemos al socket en espera
   int escuchar = listen(servidor,100);
-  if( escuchar == -1)
+  if(escuchar == -1)
   {
   	printf("No es posible escuchar en ese puerto\n");
   	return -1;
@@ -83,10 +84,8 @@ int main(int argc, char ** argv)
   {
     int cliente = accept(servidor,(struct sockaddr *)&direccion_cliente,&tam);
     char *ruta = (char *)malloc(BUFLEN*sizeof(char *));
-    char *file = (void *)malloc(sizeof(char *));
-    int n=0;
-    recv(cliente, &n, sizeof(int), 0);
-  	recv(cliente, ruta, n, 0);
+    char *file = (char *)malloc(BUFRD*sizeof(char *));
+  	recv(cliente, ruta, BUFLEN, 0);
     printf("\nUsuario conectado\n");
 
     printf("Buscanco archivo: %s\n", ruta);
@@ -95,24 +94,21 @@ int main(int argc, char ** argv)
     if (fd < 0)
     {
       printf("Error al abrir el archivo\n");
-      char * mensaje = "Error al abrir el archivo\n";
+      char * mensaje = "E";
       send(cliente, mensaje, strlen(mensaje) ,0);
-      return -1;
+      continue;
     }
       
     printf("Archivo abierto correctamente\n");
     int filesize;
       
-    while((filesize = read(fd, file, 1)) > 0)
+    while((filesize = read(fd, file, BUFRD)) > 0)
     {
-      send(cliente, &filesize, sizeof(int), 0);
       send(cliente, file, filesize, 0);
-      memset(file, 0, 1);
+      memset(file, 0, BUFRD);
     }
       
     printf("Archivo enviado correctamente\n");
-    filesize=0;
-    send(cliente, &filesize, sizeof(int), 0);
     close(fd);
     free(file);
     close(cliente);
