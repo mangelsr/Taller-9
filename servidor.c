@@ -83,35 +83,54 @@ int main(int argc, char ** argv)
   while(1)
   {
     int cliente = accept(servidor,(struct sockaddr *)&direccion_cliente,&tam);
-    char *ruta = (char *)malloc(BUFLEN*sizeof(char *));
-    char *file = (char *)malloc(BUFRD*sizeof(char *));
-  	recv(cliente, ruta, BUFLEN, 0);
-    printf("\nUsuario conectado\n");
 
-    printf("Buscanco archivo: %s\n", ruta);
+    int pid = fork();
 
-    int fd = open(ruta, O_RDONLY,S_IROTH);
-    if (fd < 0)
-    {
-      printf("Error al abrir el archivo\n");
-      char * mensaje = "E";
-      send(cliente, mensaje, strlen(mensaje) ,0);
+    if (pid==0){
+      sigset_t set;
+      sigemptyset(&set);
+      sigaddset(&set,SIGTSTP);
+      sigprocmask(SIG_BLOCK, &set, 0);
+
+      char *ruta = (char *)malloc(BUFLEN*sizeof(char *));
+      char *file = (char *)malloc(BUFRD*sizeof(char *));
+      
+      recv(cliente, ruta, BUFLEN, 0);
+      printf("\nUsuario conectado\n");
+
+      printf("Buscanco archivo: %s\n", ruta);
+
+      int fd = open(ruta, O_RDONLY,S_IROTH);
+      
+      if (fd < 0)
+      {
+        printf("Error al abrir el archivo\n");
+        char * mensaje = "Error al abrir el archivo";
+        send(cliente, mensaje, strlen(mensaje) ,0);
+        close(cliente);
+        continue;
+      }
+        
+      printf("Archivo abierto correctamente\n");
+      int filesize;
+        
+      while((filesize = read(fd, file, BUFRD)) > 0)
+      {
+        send(cliente, file, filesize, 0);
+        memset(file, 0, BUFRD);
+      }
+        
+      printf("Archivo enviado correctamente\n");
+      close(fd);
+      free(file);
+      close(cliente);
+      break;
+    }
+    else{
+      close(cliente);
       continue;
     }
-      
-    printf("Archivo abierto correctamente\n");
-    int filesize;
-      
-    while((filesize = read(fd, file, BUFRD)) > 0)
-    {
-      send(cliente, file, filesize, 0);
-      memset(file, 0, BUFRD);
-    }
-      
-    printf("Archivo enviado correctamente\n");
-    close(fd);
-    free(file);
-    close(cliente);
+
   }
 
   return 0;

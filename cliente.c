@@ -85,11 +85,6 @@ int main(int argc, char ** argv)
   while(n>0)
   {
     n = recv(cliente, buf, n, 0);
-    if (n == 1){
-      printf("Error con con el archivo\n");
-      break;
-    }
-      
     write(fd,buf,n);
     memset(buf, 0, 1);
   }
